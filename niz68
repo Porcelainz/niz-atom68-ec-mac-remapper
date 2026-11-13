@@ -1,0 +1,10 @@
+#!/bin/bash
+DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ ! -x "$DIR/.venv/bin/python" ]; then
+  echo "請先執行 ./setup.sh" >&2; exit 1
+fi
+if [ "$1" = "gui" ]; then
+  shift
+  exec "$DIR/.venv/bin/python" "$DIR/gui.py" "$@"
+fi
+exec "$DIR/.venv/bin/python" "$DIR/niz68.py" "$@"

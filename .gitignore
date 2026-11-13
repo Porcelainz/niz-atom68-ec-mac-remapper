@@ -1,0 +1,19 @@
+# Personal keymap backups (contain your layout and key press counts)
+backups/
+backups-demo/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Official vendor files must never be committed
+*.exe
+*.dll
+*.bin
+
+# Local Claude Code session files
+.claude/

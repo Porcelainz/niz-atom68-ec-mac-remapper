@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NIZ 68EC 改鍵</title>
+<style>
+:root {
+  --bg: #f4f4f1;
+  --panel: #ffffff;
+  --ink: #1d1d1b;
+  --muted: #6b6b66;
+  --line: #deddd6;
+  --cap: #fbfbf9;
+  --cap-edge: #c9c8c0;
+  --cap-shadow: #b7b6ad;
+  --accent: #c2410c;
+  --accent-soft: #fde7da;
+  --ok: #15803d;
+  --ok-soft: #dcf3e3;
+  --warn: #a16207;
+  --warn-soft: #fbf0cf;
+  --danger: #b91c1c;
+  --sel: #2563eb;
+  --sel-soft: #dbe7fe;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161614; --panel: #1f1f1d; --ink: #ecebe6; --muted: #9b9a93; --line: #34342f;
+    --cap: #2a2a27; --cap-edge: #3c3c37; --cap-shadow: #0d0d0c;
+    --accent: #fb923c; --accent-soft: #432617; --ok: #4ade80; --ok-soft: #173322;
+    --warn: #facc15; --warn-soft: #3a3212; --danger: #f87171; --sel: #60a5fa; --sel-soft: #1c2c4a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161614; --panel: #1f1f1d; --ink: #ecebe6; --muted: #9b9a93; --line: #34342f;
+  --cap: #2a2a27; --cap-edge: #3c3c37; --cap-shadow: #0d0d0c;
+  --accent: #fb923c; --accent-soft: #432617; --ok: #4ade80; --ok-soft: #173322;
+  --warn: #facc15; --warn-soft: #3a3212; --danger: #f87171; --sel: #60a5fa; --sel-soft: #1c2c4a;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "PingFang TC", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 20px 16px 120px; }
+header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+header h1 { font-size: 20px; margin: 0; font-weight: 650; letter-spacing: .01em; }
+.pill { font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: var(--panel); white-space: nowrap; }
+.pill.ok { color: var(--ok); background: var(--ok-soft); border-color: transparent; }
+.pill.bad { color: var(--warn); background: var(--warn-soft); border-color: transparent; }
+.spacer { flex: 1; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 7px 14px; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.btn.primary:disabled { opacity: .45; cursor: not-allowed; }
+.btn.ghost { background: transparent; }
+.btn.small { padding: 4px 10px; font-size: 13px; }
+
+.banner { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 18px; }
+.banner h2 { margin: 0 0 6px; font-size: 16px; }
+.banner ol { margin: 6px 0 12px; padding-left: 20px; }
+.banner kbd { font: 12px ui-monospace, Menlo, monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--cap); }
+
+.toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.tabs { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
+.tabs button { border: 0; background: transparent; padding: 6px 14px; border-radius: 6px; color: var(--muted); }
+.tabs button.on { background: var(--ink); color: var(--bg); }
+label.check { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; cursor: pointer; }
+
+.board-wrap { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; overflow-x: auto; }
+.board { --u: 52px; display: flex; flex-direction: column; gap: 6px; width: calc(var(--u) * 16 + 6px * 15); margin: 0 auto; }
+.row { display: flex; gap: 6px; }
+.key {
+  position: relative; height: var(--u); flex: 0 0 auto;
+  background: var(--cap); border: 1px solid var(--cap-edge); border-bottom-width: 4px; border-bottom-color: var(--cap-shadow);
+  border-radius: 7px; padding: 4px 6px; text-align: left; display: flex; flex-direction: column; justify-content: space-between;
+  transition: transform .05s, border-color .1s, background .1s;
+}
+.key:hover { border-color: var(--muted); }
+.key:active { transform: translateY(1px); }
+.key .main { font-size: 12.5px; font-weight: 600; line-height: 1.15; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-word; }
+.key .main.long { font-size: 10px; }
+.key .main.empty { color: var(--muted); font-weight: 400; opacity: .5; }
+.key .phys { font-size: 9.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.key .cnt { position: absolute; right: 5px; bottom: 4px; font-size: 9px; color: var(--accent); font-variant-numeric: tabular-nums; background: var(--cap); padding-left: 2px; }
+.key.sel { border-color: var(--sel); background: var(--sel-soft); }
+.key.changed { background: var(--accent-soft); border-color: var(--accent); }
+.key.changed::after { content: ""; position: absolute; top: 5px; right: 5px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.key.special .main { color: var(--warn); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: 12px; margin-top: 12px; justify-content: center; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; border: 1px solid var(--cap-edge); background: var(--cap); }
+.legend .l-changed::before { background: var(--accent-soft); border-color: var(--accent); }
+.legend .l-sel::before { background: var(--sel-soft); border-color: var(--sel); }
+
+.editor { margin-top: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: none; }
+.editor.open { display: block; }
+.ed-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.ed-head h3 { margin: 0; font-size: 16px; }
+.ed-head .sub { color: var(--muted); font-size: 13px; }
+.ed-now { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; background: var(--cap); border: 1px solid var(--cap-edge); font-weight: 600; font-size: 13px; }
+.chip button { border: 0; background: none; padding: 0 0 0 2px; color: var(--muted); font-size: 14px; line-height: 1; }
+.plus { color: var(--muted); }
+.arrow { color: var(--muted); margin: 0 4px; }
+.ed-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.search { flex: 1 1 200px; min-width: 160px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; }
+.cats { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.cats button { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 3px 11px; font-size: 12.5px; color: var(--muted); }
+.cats button.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.codes { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; max-height: 260px; overflow-y: auto; padding: 2px; }
+.codes button { border: 1px solid var(--line); background: var(--bg); border-radius: 7px; padding: 6px 8px; text-align: left; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.codes button:hover { border-color: var(--sel); background: var(--sel-soft); }
+.codes button small { color: var(--muted); margin-left: 4px; font-size: 10.5px; }
+.hint { color: var(--muted); font-size: 12.5px; margin-top: 10px; }
+
+.dock { position: fixed; left: 0; right: 0; bottom: 0; background: var(--panel); border-top: 1px solid var(--line); padding: 12px 16px; display: none; z-index: 5; }
+.dock.show { display: block; }
+.dock-in { max-width: 1180px; margin: 0 auto; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.dock-list { flex: 1; min-width: 200px; font-size: 13px; color: var(--muted); max-height: 3.2em; overflow: hidden; }
+.dock-list b { color: var(--ink); }
+
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px; }
+.overlay.show { display: flex; }
+.dialog { background: var(--panel); border-radius: 14px; padding: 20px 22px; max-width: 520px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,.3); max-height: 85vh; overflow: auto; }
+.dialog h3 { margin: 0 0 8px; font-size: 17px; }
+.dialog .acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.dialog ul { padding-left: 18px; margin: 8px 0; max-height: 240px; overflow: auto; }
+.spinner { width: 28px; height: 28px; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin: 4px auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.blist { list-style: none; padding: 0 !important; }
+.blist li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.blist li div { flex: 1; font-size: 13px; }
+.blist small { color: var(--muted); display: block; }
+
+.toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 13.5px; z-index: 30; display: none; max-width: calc(100% - 32px); }
+.toast.show { display: block; }
+.toast.err { background: var(--danger); color: #fff; }
+
+@media (max-width: 900px) { .board { --u: 44px; } }
+@media (max-width: 760px) { .board { --u: 40px; } .key .phys { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>NIZ 68EC 改鍵</h1>
+    <span id="status" class="pill">偵測中…</span>
+    <span class="spacer"></span>
+    <button class="btn ghost" id="btnBackups">備份與還原</button>
+    <button class="btn" id="btnReload">重新讀取鍵盤</button>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <section id="main" hidden>
+    <div class="toolbar">
+      <div class="tabs" id="tabs">
+        <button data-l="1" class="on">一般層</button>
+        <button data-l="2">右 Fn 層</button>
+        <button data-l="3">左 Fn 層</button>
+      </div>
+      <span class="spacer"></span>
+      <label class="check" title="鍵盤內第 4–6、7–9 層是第 1–3 層的複本。勾選後，修改會一併寫進複本，在各種模式下都生效。"><input type="checkbox" id="mirror" checked> 同時套用到複本層（建議）</label>
+      <label class="check"><input type="checkbox" id="showCounts"> 顯示按鍵次數</label>
+    </div>
+    <div class="board-wrap"><div class="board" id="board"></div>
+      <div class="legend"><span class="l-sel">選取中</span><span class="l-changed">尚未寫入的修改</span></div>
+    </div>
+
+    <div class="editor" id="editor">
+      <div class="ed-head"><h3 id="edTitle"></h3><span class="sub" id="edSub"></span><span class="spacer"></span><button class="btn ghost small" id="edClose">關閉</button></div>
+      <div class="ed-now" id="edNow"></div>
+      <div class="ed-tools">
+        <input class="search" id="search" placeholder="搜尋按鍵，例如 ctrl、F5、音量…" autocomplete="off">
+        <label class="check" title="開啟後，點選的按鍵會加在後面，組成像 Ctrl+C 這樣的組合鍵（最多 6 個）"><input type="checkbox" id="combo"> 組合鍵模式</label>
+        <button class="btn small" id="edClear">設為空白</button>
+        <button class="btn small" id="edRevert">還原此鍵</button>
+      </div>
+      <div class="cats" id="cats"></div>
+      <div class="codes" id="codes"></div>
+      <div class="hint">點選下方按鍵即可指定。所有修改會先暫存，按下方「寫入鍵盤」才會真的寫進去。</div>
+    </div>
+  </section>
+</div>
+
+<div class="dock" id="dock"><div class="dock-in">
+  <div class="dock-list" id="dockList"></div>
+  <button class="btn ghost" id="btnDiscard">全部取消</button>
+  <button class="btn primary" id="btnWrite">寫入鍵盤</button>
+</div></div>
+
+<div class="overlay" id="ov"><div class="dialog" id="dlg"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const TOKEN = "__TOKEN__";
+// Physical legends of the 68EC (key id 1..68) and row layout with widths in units.
+const PHYS = ["Esc","1","2","3","4","5","6","7","8","9","0","-","=","Backspace","`",
+  "Tab","Q","W","E","R","T","Y","U","I","O","P","[","]","\\","Del",
+  "Caps","A","S","D","F","G","H","J","K","L",";","'","Enter","PgUp",
+  "Shift","Z","X","C","V","B","N","M",",",".","/","Shift","↑","PgDn",
+  "Ctrl","Win","Alt","Space","Alt","Fn","Ctrl","←","↓","→"];
+const ROWS = [
+  [[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1],[8,1],[9,1],[10,1],[11,1],[12,1],[13,1],[14,2],[15,1]],
+  [[16,1.5],[17,1],[18,1],[19,1],[20,1],[21,1],[22,1],[23,1],[24,1],[25,1],[26,1],[27,1],[28,1],[29,1.5],[30,1]],
+  [[31,1.75],[32,1],[33,1],[34,1],[35,1],[36,1],[37,1],[38,1],[39,1],[40,1],[41,1],[42,1],[43,2.25],[44,1]],
+  [[45,2.25],[46,1],[47,1],[48,1],[49,1],[50,1],[51,1],[52,1],[53,1],[54,1],[55,1],[56,1.75],[57,1],[58,1]],
+  [[59,1.25],[60,1.25],[61,1.25],[62,6.25],[63,1],[64,1],[65,1],[66,1],[67,1],[68,1]],
+];
+const LAYER_NAME = {1:"一般層",2:"右 Fn 層",3:"左 Fn 層"};
+const SHORT = {Backspace:"⌫ Back",Enter:"⏎ Enter",Space:"Space",LShift:"⇧ Shift",RShift:"⇧ Shift",
+  LCtrl:"Ctrl",RCtrl:"Ctrl",LAlt:"Alt",RAlt:"Alt",LWin:"Win",RWin:"Win",Up:"↑",Down:"↓",Left:"←",Right:"→",
+  PageUp:"PgUp",PageDown:"PgDn",Delete:"Del",Insert:"Ins",CapsLock:"Caps",ScrollLock:"ScrLk",
+  ESC:"Esc",PlayPause:"⏯",Mute:"🔇",VolUp:"🔊+",VolDown:"🔉−",NextTrack:"⏭",PrevTrack:"⏮",
+  MouseUp:"滑鼠↑",MouseDown:"滑鼠↓",MouseLeft:"滑鼠←",MouseRight:"滑鼠→",MouseBtnLeft:"滑鼠左鍵",
+  MouseBtnRight:"滑鼠右鍵",MouseBtnMiddle:"滑鼠中鍵",WheelUp:"滾輪↑",WheelDown:"滾輪↓",
+  MouseFirstDelay:"滑鼠延遲",MouseUnitTime:"滑鼠間隔",MouseUnitPixel:"滑鼠速度",MouseDoubleClick:"滑鼠雙擊",
+  USBReportRate:"回報率",KeyRepeatRate:"重複速率",KeyResponseDelay:"反應延遲",KeyScanPeriod:"掃描週期",
+  TriggerPoint:"觸發點",ProgrammableKbd:"編程模式","Wire/Wireless":"有線/無線","Ctrl/CapsSwap":"Ctrl⇄Caps",
+  "Win/MacSwitch":"Win/Mac",WinLock:"Win 鎖",KeyboardLock:"鍵盤鎖",MouseLock:"滑鼠鎖",Game:"遊戲",ECO:"省電",
+  "Backlight+":"背光+","Backlight-":"背光−",BacklightSwitch:"背光開關",BacklightMacro:"背光自訂",
+  "Shift&Up":"Shift&↑",Calculator:"計算機",Email:"郵件",MyComputer:"我的電腦",MediaSelect:"媒體"};
+
+let state = { slots: {}, counts: null, version: "", layer: 1, sel: null, pending: {}, codes: [], cat: 0 };
+let CODE_NAME = {};
+
+const $ = (id) => document.getElementById(id);
+async function api(path, body) {
+  const r = await fetch(path, { method: body === undefined ? "GET" : "POST",
+    headers: { "X-Token": TOKEN, "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body) });
+  return r.json();
+}
+function toast(msg, err) {
+  const t = $("toast"); t.textContent = msg; t.className = "toast show" + (err ? " err" : "");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.className = "toast", err ? 7000 : 3500);
+}
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function codeName(c) { return CODE_NAME[c] || ("#" + c); }
+function shortName(c) { const n = codeName(c); return SHORT[n] || n; }
+
+function dialog(html, actions) {
+  $("dlg").innerHTML = html + (actions ? `<div class="acts">${actions}</div>` : "");
+  $("ov").className = "overlay show";
+}
+function closeDialog() { $("ov").className = "overlay"; }
+function busy(msg) { dialog(`<div class="spinner"></div><p style="text-align:center;margin:0">${esc(msg)}</p>`); }
+
+function layersFor(l) { return $("mirror").checked ? [l, l + 3, l + 6] : [l]; }
+function slotCodes(l, k) {
+  const pk = `${l}:${k}`;
+  if (pk in state.pending) return state.pending[pk];
+  const s = state.slots[pk];
+  return s && s.type === 0 ? s.codes : null;
+}
+function slotDesc(l, k) {
+  const pk = `${l}:${k}`;
+  if (pk in state.pending) return state.pending[pk].map(shortName).join("+");
+  const s = state.slots[pk];
+  if (!s) return "";
+  if (s.type === 0) return s.codes.map(shortName).join("+");
+  return s.desc || s.typeName;
+}
+
+// ---------------------------------------------------------------- board
+function renderBoard() {
+  const b = $("board"); b.innerHTML = "";
+  const l = state.layer, showCnt = $("showCounts").checked && state.counts;
+  for (const row of ROWS) {
+    const r = document.createElement("div"); r.className = "row";
+    for (const [k, w] of row) {
+      const d = slotDesc(l, k), s = state.slots[`${l}:${k}`];
+      const el = document.createElement("button");
+      el.className = "key";
+      el.style.width = `calc(var(--u) * ${w} + 6px * ${w - 1})`;
+      if (state.sel === k) el.classList.add("sel");
+      if (`${l}:${k}` in state.pending) el.classList.add("changed");
+      if (s && s.type !== 0 && !(`${l}:${k}` in state.pending)) el.classList.add("special");
+      const long = [...d].length > (w >= 1.5 ? 10 : 5);
+      const sameAsPhys = d.replace(/^\S+ /, "").toLowerCase() === PHYS[k - 1].toLowerCase() || d.toLowerCase() === PHYS[k - 1].toLowerCase();
+      const n = showCnt ? state.counts[k - 1] : null;
+      const fmt = (v) => v >= 10000 ? Math.round(v / 1000) + "k" : String(v);
+      el.innerHTML = `<span class="main ${d ? (long ? "long" : "") : "empty"}">${esc(d || "—")}</span>` +
+        (n != null ? `<span class="phys" style="color:var(--accent)">${fmt(n)}</span>`
+                   : `<span class="phys">${sameAsPhys ? "" : esc(PHYS[k - 1]) + " · "}${k}</span>`);
+      el.title = `${k} 號鍵（${PHYS[k - 1]} 位置）：${d || "空白"}` + (n != null ? `，按過 ${n} 次` : "");
+      el.onclick = () => select(k);
+      r.appendChild(el);
+    }
+    b.appendChild(r);
+  }
+  renderDock();
+}
+
+// ---------------------------------------------------------------- editor
+function select(k) {
+  state.sel = k; $("editor").className = "editor open"; renderBoard(); renderEditor();
+  $("editor").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+function renderEditor() {
+  const k = state.sel; if (!k) return;
+  const l = state.layer;
+  $("edTitle").textContent = `${k} 號鍵（${PHYS[k - 1]} 位置）`;
+  $("edSub").textContent = `${LAYER_NAME[l]}` + ($("mirror").checked ? `（連同第 ${l + 3}、${l + 6} 層）` : "");
+  const s = state.slots[`${l}:${k}`];
+  const orig = s ? (s.type === 0 ? (s.codes.length ? s.codes.map(c => `<span class="chip">${esc(codeName(c))}</span>`).join('<span class="plus">+</span>') : '<span class="chip" style="opacity:.6">空白</span>') : `<span class="chip">${esc(s.desc || s.typeName)}</span>`) : "";
+  const cur = slotCodes(l, k);
+  let now = `<span class="sub">目前：</span>${orig}`;
+  if (`${l}:${k}` in state.pending) {
+    now += `<span class="arrow">→</span>` + (cur.length ? cur.map((c, i) => `<span class="chip">${esc(codeName(c))}<button data-i="${i}" title="移除">×</button></span>`).join('<span class="plus">+</span>') : '<span class="chip">空白</span>');
+  }
+  $("edNow").innerHTML = now;
+  $("edNow").querySelectorAll("button[data-i]").forEach(bt => bt.onclick = () => {
+    const arr = [...slotCodes(l, k)]; arr.splice(+bt.dataset.i, 1); setCodes(arr);
+  });
+  renderCodes();
+}
+function setCodes(codes) {
+  const k = state.sel, l = state.layer;
+  for (const ll of layersFor(l)) {
+    const pk = `${ll}:${k}`, s = state.slots[pk];
+    const same = s && s.type === 0 && JSON.stringify(s.codes) === JSON.stringify(codes);
+    if (same) delete state.pending[pk]; else state.pending[pk] = codes;
+  }
+  renderBoard(); renderEditor();
+}
+function pick(code) {
+  const cur = slotCodes(state.layer, state.sel) || [];
+  if ($("combo").checked) {
+    if (cur.includes(code)) return;
+    if (cur.length >= 6) { toast("組合鍵最多 6 個", true); return; }
+    setCodes([...cur, code]);
+  } else setCodes([code]);
+}
+function renderCats() {
+  $("cats").innerHTML = state.codes.map((c, i) => `<button data-i="${i}" class="${i === state.cat ? "on" : ""}">${esc(c.name)}</button>`).join("");
+  $("cats").querySelectorAll("button").forEach(b => b.onclick = () => { state.cat = +b.dataset.i; $("search").value = ""; renderCats(); renderCodes(); });
+}
+function renderCodes() {
+  const q = $("search").value.trim().toLowerCase();
+  let items;
+  if (q) {
+    items = state.codes.flatMap(c => c.items.map(i => ({...i, cat: c.name})))
+      .filter(i => i.name.toLowerCase().includes(q) || String(i.code) === q || i.cat.includes(q));
+  } else items = (state.codes[state.cat] || {items: []}).items;
+  $("codes").innerHTML = items.map(i => `<button data-c="${i.code}" title="代碼 ${i.code}">${esc(i.name)}<small>${i.code}</small></button>`).join("") || `<span class="hint">找不到符合的按鍵</span>`;
+  $("codes").querySelectorAll("button").forEach(b => b.onclick = () => pick(+b.dataset.c));
+}
+
+// ---------------------------------------------------------------- dock
+function renderDock() {
+  const keys = Object.keys(state.pending);
+  $("dock").className = "dock" + (keys.length ? " show" : "");
+  if (!keys.length) return;
+  const vis = keys.filter(pk => +pk.split(":")[0] <= 3);
+  const shown = (vis.length ? vis : keys).map(pk => {
+    const [l, k] = pk.split(":").map(Number);
+    return `<b>${LAYER_NAME[l] || "第" + l + "層"} ${k}號(${esc(PHYS[k - 1])})</b> → ${esc(state.pending[pk].map(codeName).join("+") || "空白")}`;
+  });
+  const extra = keys.length - shown.length;
+  $("dockList").innerHTML = `${shown.length} 個修改待寫入${extra ? `（含複本層共 ${keys.length} 個鍵位）` : ""}：` + shown.join("、");
+}
+function confirmWrite() {
+  const keys = Object.keys(state.pending).sort((a, b) => { const [la, ka] = a.split(":").map(Number), [lb, kb] = b.split(":").map(Number); return la - lb || ka - kb; });
+  const li = keys.map(pk => {
+    const [l, k] = pk.split(":").map(Number);
+    return `<li>第 ${l} 層（${LAYER_NAME[((l - 1) % 3) + 1]}${l > 3 ? "複本" : ""}）${k} 號鍵（${esc(PHYS[k - 1])}）：<b>${esc(slotDesc(l, k) || "空白")}</b></li>`;
+  }).join("");
+  dialog(`<h3>寫入 ${keys.length} 個修改到鍵盤？</h3><p style="margin:0;color:var(--muted)">寫入前會自動備份目前設定，寫完會讀回驗證。過程約 5 秒，期間請不要拔線。</p><ul>${li}</ul>`,
+    `<button class="btn" onclick="closeDialog()">取消</button><button class="btn primary" id="goWrite">寫入</button>`);
+  $("goWrite").onclick = doWrite;
+}
+async function doWrite() {
+  const changes = Object.entries(state.pending).map(([pk, codes]) => { const [layer, key] = pk.split(":").map(Number); return { layer, key, codes }; });
+  busy("寫入中，請不要拔掉鍵盤…");
+  try {
+    const r = await api("/api/write", { changes });
+    closeDialog();
+    if (r.slots) state.slots = r.slots;
+    if (r.ok) { state.pending = {}; toast(`寫入成功，已驗證 ✓（修改前的備份：${r.backup}）`); }
+    else if (r.mismatch) toast(`⚠️ 寫入後有 ${r.mismatch.length} 個鍵位讀回不一致，可到「備份與還原」還原 ${r.backup}`, true);
+    else toast(r.message || "寫入失敗", true);
+  } catch (e) { closeDialog(); toast("連線中斷：" + e, true); }
+  renderBoard(); renderEditor();
+}
+
+// ---------------------------------------------------------------- backups
+async function showBackups() {
+  const r = await api("/api/backups");
+  const items = (r.backups || []).map(b => `<li><div>${esc(b.saved_at || b.file)}<small>${esc(b.file)} · ${esc(b.version || "")}</small></div><button class="btn small" data-f="${esc(b.file)}">還原</button></li>`).join("");
+  dialog(`<h3>備份與還原</h3><p style="margin:0;color:var(--muted)">每次讀取或寫入前都會自動備份。最早的那一份就是你第一次使用時鍵盤的原始設定。</p><ul class="blist">${items || "<li>還沒有備份</li>"}</ul>`,
+    `<button class="btn" onclick="closeDialog()">關閉</button>`);
+  $("dlg").querySelectorAll("button[data-f]").forEach(b => b.onclick = () => confirmRestore(b.dataset.f));
+}
+function confirmRestore(file) {
+  dialog(`<h3>用這份備份覆蓋鍵盤設定？</h3><p>${esc(file)}</p><p style="color:var(--muted)">還原前會先備份目前狀態。尚未寫入的修改會被捨棄。</p>`,
+    `<button class="btn" onclick="showBackups()">返回</button><button class="btn primary" id="goRestore">還原</button>`);
+  $("goRestore").onclick = async () => {
+    busy("還原中，請不要拔掉鍵盤…");
+    const r = await api("/api/restore", { file });
+    closeDialog();
+    if (r.slots) { state.slots = r.slots; state.pending = {}; }
+    r.ok ? toast("還原完成並已驗證 ✓") : toast(r.message || `⚠️ 有 ${r.mismatch.length} 個鍵位不一致`, true);
+    renderBoard(); renderEditor();
+  };
+}
+
+// ---------------------------------------------------------------- status / load
+function showBanner(st) {
+  const b = $("banner"); b.hidden = false; $("main").hidden = true;
+  if (st.state === "macmode") {
+    b.innerHTML = `<h2>鍵盤目前在 Mac 模式或藍牙連線</h2>這兩種狀態下鍵盤不開放改鍵。請：<ol><li>用 <b>USB 線</b>連接鍵盤，並關掉它的藍牙連線</li><li>長按 <kbd>Fn</kbd> + <kbd>左 Alt</kbd> 3 秒，切到 Windows 模式（指示燈閃一次）</li></ol>改完後再長按同一組合 3 秒切回 Mac 模式（閃兩次）。<br><br><button class="btn primary" onclick="init()">重新偵測</button>`;
+  } else if (st.state === "none") {
+    b.innerHTML = `<h2>找不到 NIZ 68EC 鍵盤</h2>請用 USB 線連接鍵盤，並長按 <kbd>Fn</kbd> + <kbd>左 Alt</kbd> 3 秒切到 Windows 模式。<br><br><button class="btn primary" onclick="init()">重新偵測</button>`;
+  } else {
+    b.innerHTML = `<h2>無法連線到鍵盤</h2><p style="white-space:pre-line">${esc(st.message || "")}</p><button class="btn primary" onclick="init()">重新偵測</button>`;
+  }
+}
+async function load() {
+  busy("讀取鍵盤設定…");
+  const r = await api("/api/read", {});
+  closeDialog();
+  if (!r.ok) { toast(r.message || "讀取失敗", true); return; }
+  state.slots = r.slots; state.counts = r.counts; state.version = r.version;
+  $("status").textContent = r.version.replace(/;+$/, "").split(";").join(" · "); $("status").className = "pill ok";
+  $("banner").hidden = true; $("main").hidden = false;
+  renderBoard(); renderEditor();
+}
+async function init() {
+  $("status").textContent = "偵測中…"; $("status").className = "pill";
+  const st = await api("/api/status");
+  if (!st.ok) { $("status").textContent = "未連線"; $("status").className = "pill bad"; showBanner(st); return; }
+  await load();
+}
+
+$("tabs").querySelectorAll("button").forEach(b => b.onclick = () => {
+  state.layer = +b.dataset.l; $("tabs").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  renderBoard(); renderEditor();
+});
+$("showCounts").onchange = renderBoard;
+$("mirror").onchange = renderEditor;
+$("search").oninput = renderCodes;
+$("edClose").onclick = () => { state.sel = null; $("editor").className = "editor"; renderBoard(); };
+$("edClear").onclick = () => setCodes([]);
+$("edRevert").onclick = () => { for (const ll of layersFor(state.layer)) delete state.pending[`${ll}:${state.sel}`]; renderBoard(); renderEditor(); };
+$("btnDiscard").onclick = () => { state.pending = {}; renderBoard(); renderEditor(); };
+$("btnWrite").onclick = confirmWrite;
+$("btnBackups").onclick = showBackups;
+$("btnReload").onclick = () => {
+  if (Object.keys(state.pending).length && !confirm("重新讀取會捨棄尚未寫入的修改，確定嗎？")) return;
+  state.pending = {}; init();
+};
+$("ov").onclick = (e) => { if (e.target === $("ov") && !$("dlg").querySelector(".spinner")) closeDialog(); };
+window.addEventListener("beforeunload", (e) => { if (Object.keys(state.pending).length) { e.preventDefault(); e.returnValue = ""; } });
+
+(async () => {
+  const c = await api("/api/codes");
+  state.codes = c.categories;
+  for (const cat of c.categories) for (const i of cat.items) CODE_NAME[i.code] = i.name;
+  renderCats();
+  init();
+})();
+</script>
+</body>
+</html>
